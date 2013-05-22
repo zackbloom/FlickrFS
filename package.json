@@ -1,0 +1,31 @@
+{
+  "name": "flickrfs",
+  "version": "0.0.1",
+  "description": "Mount Flickr as a Filesystem",
+  "main": "flickrFS.coffee",
+  "dependencies": {
+    "commander": "~1.1.1",
+    "flickr-with-uploads": "~0.2.2",
+    "fuse4js": "~0.1.2",
+    "js-yaml": "~2.0.5",
+    "oauth": "~0.9.10",
+    "underscore": "~1.4.4"
+  },
+  "devDependencies": {},
+  "bundledDependencies": ["flickr-with-uploads"],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zackbloom/FlickrFS.git"
+  },
+  "keywords": [
+    "fuse",
+    "filesystem",
+    "flickr"
+  ],
+  "author": "Zack Bloom <zackbloom@gmail.com>",
+  "license": "MIT",
+  "gitHead": "463636b3e0437b10c26c35d6ac659e7dc5b1eb2a"
+}
