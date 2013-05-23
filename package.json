@@ -10,7 +10,10 @@
     "js-yaml": "~2.0.5",
     "oauth": "~0.9.10",
     "underscore": "~1.4.4",
-    "mocha": "~1.10.0"
+    "mocha": "~1.10.0",
+    "png": "~3.0.1",
+    "png-js": "~0.1.1",
+    "pngjs": "~0.4.0-alpha"
   },
   "devDependencies": {},
   "bundledDependencies": [

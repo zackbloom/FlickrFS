@@ -22,7 +22,7 @@ writeTestImage = (cb) ->
 
     cb {id, path, contents}
 
-describe 'PhotoClient', ->
+describe.skip 'PhotoClient', ->
   describe 'readInfo', ->
     it 'should get the info by id', (done) ->
       @timeout 10000

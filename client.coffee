@@ -19,7 +19,6 @@ class FlickrPhotoClient
       is_friend: 0
       is_family: 0
       hidden: 2
-      can_download: true
       photo: dataStream
 
     tags = ['fs']
@@ -61,7 +60,10 @@ class FlickrPhotoClient
     @makeRequest 'flickr.photos.setTags', params, cb
 
   encodeTitle: (path) ->
-    crypto.createHash('sha1').update(path).digest('hex')[..8]
+    if @opts.encodePath
+      crypto.createHash('sha1').update(path).digest('hex')
+    else
+      path
 
   readSizes: (id, cb) ->
     params =
