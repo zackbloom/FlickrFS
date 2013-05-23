@@ -9,10 +9,13 @@
     "fuse4js": "~0.1.2",
     "js-yaml": "~2.0.5",
     "oauth": "~0.9.10",
-    "underscore": "~1.4.4"
+    "underscore": "~1.4.4",
+    "mocha": "~1.10.0"
   },
   "devDependencies": {},
-  "bundledDependencies": ["flickr-with-uploads"],
+  "bundledDependencies": [
+    "flickr-with-uploads"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

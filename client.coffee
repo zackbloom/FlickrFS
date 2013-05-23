@@ -1,4 +1,6 @@
 _ = require('underscore')
+http = require('http')
+crypto = require('crypto')
 
 class FlickrPhotoClient
   constructor: (@client, @opts={}) ->
@@ -7,12 +9,17 @@ class FlickrPhotoClient
     @client.createRequest(method, params, true, cb).send()
 
   writePhoto: (path, dataStream, opts={}, cb) ->
+    if _.isFunction opts
+      cb = opts
+      opts = {}
+
     params =
-      title: path
+      title: @encodeTitle path
       is_public: 0
       is_friend: 0
       is_family: 0
       hidden: 2
+      can_download: true
       photo: dataStream
 
     tags = ['fs']
@@ -22,11 +29,26 @@ class FlickrPhotoClient
 
     _.extend params, opts.params
 
-    @makeRequest 'upload', params, cb
+    @makeRequest 'upload', params, (err, resp) ->
+      cb(err, resp?.photoid)
 
-  readPhotoByPath: (path, opts={}, cb) ->
-  readPhotoById: (id, opts={}, cb) ->
-  readPhotoByInfo: (info, opts={}, cb) ->
+  readPhoto: (id, cb) ->
+    @readSizes id, (err, sizes) =>
+      return cb(err) if err?
+
+      url = @getOriginalURL sizes
+      @readURL url, cb
+
+  readURL: (url, cb) ->
+    http.get url, (stream) ->
+      cb null, stream
+
+  getOriginalURL: (sizes) ->
+    for size in sizes
+      if size.label is 'Original'
+        return size.source
+
+    throw "Original photo cannot be found in response."
 
   writePhotoTags: (id, tags, cb) ->
     if _.isArray(tags)
@@ -38,33 +60,32 @@ class FlickrPhotoClient
 
     @makeRequest 'flickr.photos.setTags', params, cb
 
-  readPhotoInfoByPath: (path, cb) ->
-    params =
-      user_id: 'me'
-      text: path
+  encodeTitle: (path) ->
+    crypto.createHash('sha1').update(path).digest('hex')[..8]
 
-    @makeRequest 'flickr.photos.search', params, (err, resp) ->
+  readSizes: (id, cb) ->
+    params =
+      photo_id: id
+
+    @makeRequest 'flickr.photos.getSizes', params, (err, resp) ->
       return cb(err) if err?
 
-      photos = resp.photos.photo
+      cb(null, resp.sizes.size)
 
-      if photos.length == 0
-        cb {'code': 'ENOENT'}
-      else if photos.length > 1
-        console.warn "Multiple files found matching name #{ path }"
-
-      cb null, photos[0]
-
-  readPhotoInfoById: (id, cb) ->
+  readPhotoInfo: (id, cb) ->
     params =
       photo_id: id
 
     @makeRequest 'flickr.photos.getInfo', params, (err, resp) ->
       if err?
-        if err.message.indexOf('not found') isnt -1
+        if err.message?.indexOf('not found') isnt -1
           err.code = 'ENOENT'
         return cb(err)
 
-      cb(null, resp)
+      for key, val of resp.photo
+        if val?._content
+          resp.photo[key] = val._content
+
+      cb(null, resp.photo)
 
 module.exports = FlickrPhotoClient
