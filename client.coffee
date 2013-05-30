@@ -1,6 +1,7 @@
 _ = require('underscore')
 http = require('http')
 crypto = require('crypto')
+debug = require('debug')('FFS:PhotoClient')
 
 class FlickrPhotoClient
   constructor: (@client, @opts={}) ->
@@ -23,23 +24,30 @@ class FlickrPhotoClient
 
     tags = ['fs']
     if opts.tags?
-      tags.push.apply(params.tags, opts.tags)
+      tags.push.apply(tags, opts.tags)
+    debug tags
     params.tags = tags.join(' ')
 
     _.extend params, opts.params
 
+    debug 'uploading'
     @makeRequest 'upload', params, (err, resp) ->
+      debug 'done'
       cb(err, resp?.photoid)
 
   readPhoto: (id, cb) ->
+    debug 'getting sizes'
     @readSizes id, (err, sizes) =>
       return cb(err) if err?
 
+      debug 'read sizes'
       url = @getOriginalURL sizes
       @readURL url, cb
 
   readURL: (url, cb) ->
+    debug 'getting'
     http.get url, (stream) ->
+      debug 'got'
       cb null, stream
 
   getOriginalURL: (sizes) ->

@@ -1,6 +1,6 @@
 _ = require('underscore')
 fs = require('fs')
-resumer = require('resumer')
+debug = require('debug')('FFS:Store')
 PngEncoder = require('png').Png
 PngDecoder = require('png-js')
 
@@ -31,19 +31,27 @@ class FlickrStore
 
     return [out, size]
 
-  write: (path, buffer, cb) ->
+  write: (path, buffer, mode='644', cb) ->
     size = Math.ceil(Math.sqrt((buffer.length + @HEADER_SIZE) / 3))
 
     byteSize = size * size * 3
+    dataSize = buffer.length
 
+    debug 'adding header'
     buffer = @addHeader(buffer, byteSize)
 
+    debug 'encoding'
     png = new PngEncoder(buffer, size, size, 'rgb')
   
-    @client.writePhoto(path, png.encodeSync(), cb)
+    opts =
+      tags: ["size:#{ dataSize }", "mode:#{ mode }"]
+
+    debug 'writing'
+    @client.writePhoto(path, png.encodeSync(), opts, cb)
 
   stripAlphas: (data) ->
-    out = new Buffer(data.length)
+    debug 'stripping'
+    out = new Buffer(Math.ceil(data.length*3/4))
 
     sourcei = desti = 0
     n = 1
@@ -55,26 +63,33 @@ class FlickrStore
 
       sourcei++
 
+    debug 'done'
     out
 
   read: (id, cb) ->
+    debug 'read photo'
     @client.readPhoto id, (err, stream) =>
-      data = ''
+      chunks = []
       stream.on 'data', (chunk) ->
-        data += chunk.toString('hex')
+        chunks.push chunk
 
       stream.on 'end', =>
-        buffer = new Buffer(data, 'hex')
-
+        buffer = Buffer.concat(chunks)
+        debug 'decoding'
         img = new PngDecoder(buffer)
 
+        debug 'calling decode'
         img.decode (pixels) =>
+          debug 'stripping alphas'
           pixels = @stripAlphas pixels
+          debug 'done. reading header'
 
           [data, size] = @readHeader pixels
   
+          debug 'slicing data'
           data = data.slice(0, size)
 
+          debug 'done slicing'
           cb null, data
 
 module.exports = FlickrStore
