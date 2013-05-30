@@ -14,6 +14,7 @@ ffs = require('./ffs')
 
 opts = config.load program.config
 _.extend opts, program
+console.log opts
 
 if not opts.ACCESS_TOKEN? or not opts.ACCESS_SECRET?
   auth opts, (err, accessToken, accessSecret) ->
